@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PERCEPTION</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --black:#060606; --white:#F0EBE1; --orange:#E8520A;
+  --dim:#0F0F0F; --silver:#5A5A5A; --txt:#A8A8A8;
+}
+::selection { background:var(--orange); color:var(--white); }
+html { scroll-behavior:smooth; }
+body { background:var(--black); color:var(--white); font-family:'Space Grotesk',sans-serif; overflow-x:hidden; }
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:var(--black); }
+::-webkit-scrollbar-thumb { background:var(--orange); }
+
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 2.5rem; height:56px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  background:rgba(6,6,6,.93); backdrop-filter:blur(10px);
+}
+.nav-logo { font-family:'Bebas Neue',sans-serif; font-size:1.25rem; letter-spacing:.22em; color:var(--white); }
+.nav-right { display:flex; align-items:center; gap:2rem; }
+.nav-link { font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--silver); border:none; background:none; font-family:'Space Grotesk',sans-serif; cursor:pointer; transition:color .2s; }
+.nav-link:hover { color:var(--white); }
+.nav-link.active { color:var(--orange); }
+.live-dot { display:flex; align-items:center; gap:.4rem; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--silver); }
+.dot { width:6px; height:6px; background:var(--orange); border-radius:50%; animation:blink 1.4s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+.page { display:none; min-height:100vh; padding-top:56px; }
+.page.active { display:block; }
+
+/* TICKER */
+.ticker-bar { background:var(--orange); padding:.5rem 0; overflow:hidden; white-space:nowrap; position:relative; z-index:50; transition:filter .5s; }
+.ticker-bar.glitch { filter:blur(8px) contrast(2); }
+.ticker-track { display:inline-flex; white-space:nowrap; will-change:transform; }
+.ticker-track span { font-family:'Bebas Neue',sans-serif; font-size:.9rem; letter-spacing:.25em; color:var(--black); padding:0 2rem; flex-shrink:0; }
+
+/* HERO */
+.hero { display:grid; grid-template-columns:1fr 1fr; min-height:calc(100vh - 56px - 36px); }
+.hero-left { padding:4.5rem 3rem 4rem 3.5rem; display:flex; flex-direction:column; justify-content:space-between; border-right:1px solid rgba(255,255,255,.06); position:relative; overflow:hidden; }
+.hero-tag { display:inline-flex; align-items:center; gap:.6rem; font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color:var(--orange); margin-bottom:2.5rem; }
+.hero-tag::before { content:''; width:20px; height:1px; background:var(--orange); }
+.hero-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(5rem,11vw,10.5rem); line-height:.88; letter-spacing:.01em; }
+.hero-title .outline { display:block; color:transparent; -webkit-text-stroke:1.5px rgba(240,235,225,.3); }
+.hero-title .solid   { display:block; color:var(--white); }
+.hero-title .accent  { display:block; color:var(--orange); }
+
+.hero-desc { font-size:.85rem; line-height:1.75; color:var(--txt); max-width:360px; margin-top:2.5rem; opacity:0; transition:opacity .8s ease .3s; pointer-events:none; }
+.hero-desc.revealed { opacity:1; pointer-events:auto; }
+
+.play-banner { position:absolute; left:3.5rem; right:3rem; background:var(--orange); padding:.65rem 1.2rem; font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:.2em; color:var(--black); opacity:0; pointer-events:none; transition:opacity .35s; animation:bannerPulse 2s ease-in-out infinite; top:0; }
+.play-banner.visible { opacity:1; }
+@keyframes bannerPulse { 0%,100%{opacity:1} 50%{opacity:.65} }
+
+.fall-banner { position:absolute; inset:0; background:var(--orange); display:flex; align-items:center; padding-left:2rem; z-index:8; pointer-events:none; transform:translateY(-110%); }
+.fall-banner.active { animation:fallDown 1.4s cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes fallDown { 0%{transform:translateY(-110%)} 45%{transform:translateY(0)} 100%{transform:translateY(110%)} }
+.fall-banner span { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:.2em; color:var(--black); }
+
+.hero-bottom { margin-top:4rem; display:flex; align-items:center; gap:2rem; flex-wrap:wrap; position:relative; z-index:2; }
+.enter-btn { display:inline-flex; align-items:center; gap:.8rem; background:var(--orange); border:none; padding:.9rem 2rem; font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.18em; color:var(--white); cursor:pointer; transition:opacity .2s; }
+.enter-btn:hover { opacity:.85; }
+.enter-btn:disabled { opacity:.35; cursor:default; }
+.hero-stat { display:flex; flex-direction:column; gap:.2rem; }
+.hs-val { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:.06em; line-height:1; }
+.hs-label { font-size:.58rem; letter-spacing:.18em; text-transform:uppercase; color:var(--silver); }
+
+.hero-right { background:var(--dim); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:400px; }
+.court { position:absolute; inset:0; pointer-events:none; }
+.court-arc { position:absolute; bottom:-60px; left:50%; transform:translateX(-50%); width:340px; height:340px; border:1px solid rgba(255,255,255,.06); border-radius:50%; }
+.court-lane { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:130px; height:55%; border:1px solid rgba(255,255,255,.05); border-bottom:none; }
+.court-hoop { position:absolute; bottom:55%; left:50%; transform:translateX(-50%); width:36px; height:36px; border:1.5px solid rgba(232,82,10,.4); border-radius:50%; }
+.court-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80px; height:80px; border:1px solid rgba(255,255,255,.04); border-radius:50%; }
+.hero-bigN { font-family:'Bebas Neue',sans-serif; font-size:clamp(10rem,22vw,20rem); color:transparent; -webkit-text-stroke:1px rgba(255,255,255,.045); line-height:1; user-select:none; position:relative; z-index:1; }
+.eq-bars { position:absolute; bottom:0; left:0; right:0; display:flex; align-items:flex-end; gap:2px; height:70px; padding:0 1.5rem; z-index:2; }
+.eq-bar { flex:1; background:var(--orange); border-radius:1px 1px 0 0; opacity:.55; animation:eqPulse 1.6s ease-in-out infinite; }
+@keyframes eqPulse { 0%,100%{transform:scaleY(.15);opacity:.3} 50%{transform:scaleY(1);opacity:.65} }
+.score-overlay { position:absolute; top:2rem; left:2rem; z-index:3; display:flex; flex-direction:column; gap:.3rem; }
+.score-line { font-family:'Bebas Neue',sans-serif; font-size:.75rem; letter-spacing:.22em; color:rgba(255,255,255,.15); text-transform:uppercase; }
+
+#gameCanvas { position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; display:none; touch-action:none; cursor:crosshair; }
+
+/* JOYSTICK */
+#joyWrap { position:absolute; bottom:2.5rem; left:50%; transform:translateX(-50%); z-index:20; display:none; flex-direction:column; align-items:center; gap:.5rem; }
+#joyBase { width:100px; height:100px; border-radius:50%; border:2px solid rgba(232,82,10,.3); background:rgba(232,82,10,.06); position:relative; cursor:pointer; user-select:none; }
+#joyKnob { position:absolute; width:40px; height:40px; border-radius:50%; background:var(--orange); top:50%; left:50%; transform:translate(-50%,-50%); box-shadow:0 0 16px rgba(232,82,10,.5); transition:box-shadow .1s; pointer-events:none; }
+#joyLabel { font-family:'Bebas Neue',sans-serif; font-size:.6rem; letter-spacing:.22em; color:rgba(255,255,255,.2); text-transform:uppercase; }
+#shootBtn { background:var(--orange); border:none; padding:.5rem 1.5rem; font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:.18em; color:var(--white); cursor:pointer; opacity:.0; transition:opacity .2s, transform .1s; border-radius:2px; display:none; }
+#shootBtn.ready { opacity:1; }
+#shootBtn:active { transform:scale(.95); }
+
+.game-hud { position:absolute; top:1rem; right:1rem; z-index:15; display:none; flex-direction:column; align-items:flex-end; gap:.3rem; pointer-events:none; }
+.hud-score { font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:.08em; color:var(--orange); line-height:1; }
+.hud-sub { font-size:.52rem; letter-spacing:.22em; text-transform:uppercase; color:var(--silver); }
+.hud-pips { display:flex; gap:.5rem; margin-top:.3rem; }
+.pip { width:12px; height:12px; border-radius:50%; background:rgba(255,255,255,.1); transition:background .2s; }
+.pip.lit { background:var(--orange); }
+
+.aim-hint { position:absolute; bottom:8rem; left:0; right:0; z-index:15; text-align:center; pointer-events:none; font-family:'Bebas Neue',sans-serif; font-size:.68rem; letter-spacing:.2em; color:rgba(255,255,255,.28); display:none; animation:hintFade 4s ease forwards; }
+@keyframes hintFade { 0%{opacity:1} 75%{opacity:.3} 100%{opacity:0} }
+
+.celebrate-overlay { position:absolute; inset:0; z-index:20; background:rgba(6,6,6,.97); display:none; flex-direction:column; align-items:center; justify-content:center; gap:1.2rem; text-align:center; padding:2rem; }
+.celebrate-overlay.show { display:flex; animation:celebIn .9s ease; }
+@keyframes celebIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+.cel-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.8rem,4.5vw,3.5rem); line-height:1.05; letter-spacing:.03em; color:var(--white); }
+.cel-title span { color:var(--orange); }
+.cel-sub { font-size:.65rem; letter-spacing:.2em; text-transform:uppercase; color:var(--silver); }
+.cel-emoji { font-size:1.8rem; }
+
+footer { border-top:1px solid rgba(255,255,255,.05); padding:1.4rem 3.5rem; display:flex; justify-content:space-between; align-items:center; }
+footer span { font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.14); }
+footer .flogo { font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:.2em; color:rgba(255,255,255,.07); }
+
+/* TEXT PAGE */
+.text-page-wrap { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 56px); }
+.text-sidebar { border-right:1px solid rgba(255,255,255,.06); padding:3.5rem 1.8rem; display:flex; flex-direction:column; justify-content:space-between; position:sticky; top:56px; height:calc(100vh - 56px); overflow:hidden; }
+.ts-top { display:flex; flex-direction:column; gap:1.5rem; }
+.ts-num { font-family:'Bebas Neue',sans-serif; font-size:7rem; line-height:1; color:transparent; -webkit-text-stroke:1px rgba(255,255,255,.08); }
+.ts-label { font-size:.55rem; letter-spacing:.32em; text-transform:uppercase; color:var(--orange); }
+.ts-title { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; line-height:1; letter-spacing:.04em; color:var(--white); }
+.ts-note { font-size:.62rem; line-height:1.75; color:var(--silver); border-left:2px solid var(--orange); padding-left:.8rem; }
+.sidebar-eq { display:flex; align-items:flex-end; gap:2px; height:28px; margin-top:1.2rem; }
+.seq-bar { flex:1; background:var(--orange); border-radius:1px; opacity:.35; }
+.ts-bottom { font-size:.44rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.08); }
+.text-main { padding:4.5rem 4rem 5rem; }
+.tm-eyebrow { display:flex; align-items:center; gap:.8rem; font-size:.6rem; letter-spacing:.28em; text-transform:uppercase; color:var(--orange); margin-bottom:3rem; }
+.tm-eyebrow::before { content:''; width:20px; height:1px; background:var(--orange); }
+.raw-text { font-family:'Space Grotesk',sans-serif; font-size:.95rem; font-weight:300; line-height:2.1; color:#888; max-width:700px; }
+.raw-text::first-letter { font-family:'Bebas Neue',sans-serif; float:left; font-size:6rem; line-height:.8; padding-right:.1em; color:var(--orange); margin-top:.05em; }
+.h-w { color:var(--white); font-weight:500; }
+.h-o { color:var(--orange); }
+.h-i { font-style:italic; color:#C0B8AE; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">PERCEPTION</span>
+  <div class="nav-right">
+    <button class="nav-link active" id="nl-land" onclick="showPage('land')">Home</button>
+    <div class="live-dot"><div class="dot"></div><span>for Nour</span></div>
+  </div>
+</nav>
+
+<!-- LANDING -->
+<div class="page active" id="page-land">
+  <div class="ticker-bar" id="tickerBar">
+    <div class="ticker-track" id="tickerTrack">
+      <span>PERCEPTION</span><span>◉</span><span>FOR NOUR</span><span>◉</span><span>SHE IS SO FCKN FLY</span><span>◉</span><span>INFINITE POTENTIAL</span><span>◉</span><span>KNOW YOU</span><span>◉</span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-left" id="heroLeft">
+      <div style="position:relative;">
+        <div class="hero-tag">Vol. I — 2026</div>
+        <h1 class="hero-title">
+          <span class="outline">PER</span>
+          <span class="solid">CEP</span>
+          <span class="accent">TION</span>
+        </h1>
+        <p class="hero-desc" id="heroDesc">A mind poured note. Unedited. Genuine as it gets — for someone with the kind of aura that reorganises the air particles around her.</p>
+        <div class="play-banner" id="playBanner">PLAY BALL &amp; SHOOT UR SHOT</div>
+        <div class="fall-banner" id="fallBanner"><span>PLAY BALL &amp; SHOOT UR SHOT</span></div>
+      </div>
+      <div class="hero-bottom">
+        <button class="enter-btn" id="mainBtn" onclick="handleBtn()">Play it →</button>
+        <div class="hero-stat"><span class="hs-val infinity" style="color:var(--orange);">&#8734;</span><span class="hs-label">Potential</span></div>
+        <div class="hero-stat"><span class="hs-val">x100</span><span class="hs-label">Vision</span></div>
+      </div>
+    </div>
+
+    <div class="hero-right" id="heroRight">
+      <div class="court" id="staticCourt">
+        <div class="court-lane"></div><div class="court-arc"></div>
+        <div class="court-hoop"></div><div class="court-center"></div>
+      </div>
+      <div class="score-overlay" id="scoreOverlay">
+        <span class="score-line">NOUR</span>
+        <span class="score-line" style="color:var(--orange);font-size:1.2rem;">∞</span>
+        <span class="score-line">the fly fine shi</span>
+        <span class="score-line">00</span>
+      </div>
+      <div class="hero-bigN" id="bigN">N</div>
+      <div class="eq-bars" id="eqBars"></div>
+
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- JOYSTICK UI -->
+      <div id="joyWrap">
+        <div id="joyBase"><div id="joyKnob"></div></div>
+        <div id="joyLabel">DRAG TO AIM</div>
+        <button id="shootBtn" onclick="fireFromJoy()">SHOOT 🏀</button>
+      </div>
+
+      <div class="game-hud" id="gameHud">
+        <div class="hud-score" id="hudScore">0</div>
+        <div class="hud-sub">buckets</div>
+        <div class="hud-pips">
+          <div class="pip" id="pip0"></div>
+          <div class="pip" id="pip1"></div>
+          <div class="pip" id="pip2"></div>
+        </div>
+      </div>
+
+      <div class="aim-hint" id="aimHint">USE JOYSTICK BELOW — DRAG &amp; RELEASE OR PRESS SHOOT</div>
+
+      <div class="celebrate-overlay" id="celebrateOverlay">
+        <div class="cel-emoji">🎉🏀🎊</div>
+        <div class="cel-title">THERE'S A PARADE<br>IN MY <span>CITY</span> YEAAH</div>
+        <div class="cel-sub">3 buckets — now read what this is really about</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>PERCEPTION — Vol. I</span><span class="flogo">P</span><span>for Nour — 2026</span>
+  </footer>
+</div>
+
+<!-- PAGE: POLISHED NOTE -->
+<div class="page" id="page-polished">
+  <div class="text-page-wrap">
+    <div class="text-sidebar">
+      <div class="ts-top">
+        <div><div class="ts-label">Page Two</div><div class="ts-num">02</div></div>
+        <div>
+          <div class="ts-title">THE<br>APPETIZER<br>NOTE</div>
+          <p class="ts-note" style="margin-top:.9rem;">Calm. Refined. The same feeling, held differently.</p>
+        </div>
+        <div class="sidebar-eq" id="sideEq"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.8rem;">
+        <button onclick="showPage('raw')" style="background:var(--orange);border:none;padding:1rem 1.5rem;font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.18em;text-transform:uppercase;color:var(--black);cursor:pointer;text-align:left;width:100%;">The Raw →</button>
+        <div class="ts-bottom">Perception — Vol.I</div>
+      </div>
+    </div>
+    <div class="text-main">
+      <div class="tm-eyebrow">Polished — considered — still real</div>
+      <div class="raw-text" style="font-weight:400;color:#999;"><span class="h-w">Nour is so cool and fly</span> in a way I can't fully explain. She has this aura — quiet, effortless, almost unreal — that pulls my attention even when I don't mean to give it.
+
+And I keep thinking about her like one thinks in those white nights, when the world feels too soft and too bright at the same time, and your thoughts stop behaving in straight lines, like they're no longer answering to you.
+
+<span class="h-o">I want to see her achieve everything she wants.</span> Not in a loud "I hope you succeed" way, but in a deeper sense — like I genuinely want her life to unfold exactly as something in her inner world already knows it should. I think she has more inside her than she says out loud — <span class="h-w">intricate thoughts, weighed carefully, not always translated into words.</span> And maybe that's what makes me want to understand her more.
+
+There's something about her presence that stays with me after. Even simple moments feel slightly elevated. <span class="h-i">Even silence doesn't feel empty.</span>
+
+And I won't lie — sometimes my mind goes too far. It starts building meanings, connections, entire worlds out of small things. I catch myself in it, I know I do. But even when I step back from it, <span class="h-w">something still remains. A feeling I can't fully dismiss.</span>
+
+With her, my nonchalant, nonverbal self turns ridiculous. I find myself wanting to know more, to hear more, to understand the parts of her that don't get spoken out loud. Not to possess anything, not to take space — <span class="h-o">but just to be close enough to understand the shape of her thoughts.</span>
+
+Even the way she exists around people — akh — it feels warm. Her presence, her voice, the way she moves through moments — I don't know why it affects me like that, it just does.
+
+Sometimes I imagine her talking freely, just telling me random thoughts, unfiltered, not careful. <span class="h-w">And I think that's what I want most</span> — not intensity, not meaning, just something real and ongoing between two people who don't feel like strangers anymore.
+
+And maybe that's where it stops being complicated.
+
+<span class="h-i">Not obsession. Not limerence. Just this quiet, persistent thought that she is someone I genuinely want to understand more, step by step, without rushing whatever she is becoming.</span></div>
+    </div>
+  </div>
+  <footer>
+    <span>Page 02 — The Appetizer Note</span><span class="flogo">PERCEPTION</span>
+    <button onclick="showPage('land')" style="background:none;border:none;font-family:'Space Grotesk',sans-serif;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.14);cursor:pointer;">← Back</button>
+  </footer>
+</div>
+
+<!-- PAGE: RAW TEXT -->
+<div class="page" id="page-raw">
+  <div class="text-page-wrap">
+    <div class="text-sidebar">
+      <div class="ts-top">
+        <div><div class="ts-label">Page Three</div><div class="ts-num">03</div></div>
+        <div>
+          <div class="ts-title">THE<br>RAW</div>
+          <p class="ts-note" style="margin-top:.9rem;">Unedited. Mind-poured. Exactly as it came out.</p>
+        </div>
+        <div class="sidebar-eq" id="sideEq2"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.8rem;">
+        <button onclick="showPage('polished')" style="background:none;border:.5px solid rgba(232,82,10,.3);padding:.5rem 1rem;font-family:'Space Grotesk',sans-serif;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);cursor:pointer;text-align:left;">← The Note</button>
+        <div class="ts-bottom">Perception — Vol.I</div>
+      </div>
+    </div>
+    <div class="text-main">
+      <div class="tm-eyebrow">Raw — unfiltered — mind poured</div>
+      <div class="raw-text"><span class="h-w">nour is so cool and fly</span> , she has <span class="h-o">infinite potential</span> nd like she's so damn akhh has such of an aura it attracts my soul into her<span class="h-w">gravitational force</span> , i want to see her achieve all her goals and living her dream life nd shi in the places she wanna be in, she deserves the world ,i tully wanna get to know her more , i believe her thoughts are so intricate but are not really often put into words , i want to see her absolutely smash the career she wants or that she'll want along the way <span class="h-o"> according to her vision ,basically she's so fckn cool and fly </span> ,i hope she holds her mind gently everyday even in moments of doubt , i usually hate physical touch but <span class="h-o">her hugs are soooooooooo warrmm</span> and arkhhhhhhhhhh i would let my soul <span class="h-w"> disolve</span> into her hug ,i really wanna get to the point where she starts yapping to me ,telling me about her day , how she feels abt certain things , her most unhinged reflections on things , how she sees her inner and outside world , i want to <span class="h-o">truly understand her soul</span> ,her deepest mind and unconscious , i wanna experience her ,i really want our bond to be infinite as m putting my intentions into words,<span class="h-i">where the hell u been this whole time bro</span> getting to know u as a new person <span class="h-o">the cool fine shi u are </span> is so amazing ,i want to understand every inch of her soul , i would tear pages from my soul to rewrite her past with peace and then both merging into the version of ourselves that achieves the things we want respectively ,my gut feels nd is certain that ur really so worth it , i pray that the life you're building is everything u once strugled and hoped for ,for u to keep going no matter what , <span class="h-w">adjusting ur system </span> along the way but <span class="h-o">never giving up on the vision</span> , ill be the happiest and proudest person with every achievement you reach , i know that <span class="h-w"> of course fucking course u can</span> and that you <span class="h-w">fucking will</span> do at least <span class="h-o">x100 times</span> than what u envision nd as soon as possible slowly but surely eating the risks along the way and jumping on <span class="h-o">firepropulsing opportunities </span> ,i wish she becomes the person that spams me with every random thought she has, i hate having nothing to say when i really wanna talk to her i jst feel uncertain abt the way she sees me nd genre i dont wanna be annoying in case she doesnt want me or want things to stay <span class="h-i">surface level </span>, m naturally a rlly distant person but like if i hav a friend crush i would try even with the lamest texts nd interactions ever, i be <span class="h-i">ridiculous</span>, i rlly want u to be part of <span class="h-o">'my ppl'</span> the ones m really truly my fullest self with ,uve never saw me like myself ig cuz there's none of my ppl in l uir nd cuz m still slightly shy frm u nd awkward smtimes but like its rlly not gonna be that if a bond starts forming, m not forcing anything m jst putting sum of my thoughts abt u into words ,<span class="h-i">nonchalant me turns into a friendship pleaser like if it was sum kinda limerence like akhh</span>, <span class="h-w">i hope u peace with oneself and heaven also</span> , m giving u my heart , <span class="h-o">ur free to return it back</span> if u slightly feel <span class="h-i">off</span> ,i think of u everyday , i ve been missin u , i love you, <span class="h-w">hope we get away from this place to places that are meant for our greatest achievements </span>,ur a loved one at this point even tho i feel like i barely know anything abt u at all, my limerence for u was so bad that i would bury myself just so u could come nd pick up the flowers at my graveyard , i craved our interactions nd u like x10 times more than nicotine , i really wanna <span class="h-o">hold ur mind in the most gentle way possible</span> ,m also open for u to get to know me as deeply as i ve known myself so far , i appreciate the person u are , how u exist in like such a<span class="h-w"> fly shi</span> kinda way, i want also to merge our fun in like sm unhinged ways nd like jst have the greatest times tg , with time, like genre i jst want us to get to know each other more , the fact that u exist out there in the world as such a <span class="h-o">cool human</span>make my day like 2x better</span>,gave me the drive to pursue my things when i was at my lowest nd like having small convos irl with u as barely an acquaintance at the time was so refreshing , overall i felt refreshed when i started socializing slightly again with ppl since ramadan ,hit kant a period li only i could talk with ppl li didn't require me a social battery bhl riyad nd light interactions with acquaintances snn i be very non verbal irl and in my mind be jst tryna regulate my nervous system ,ms db normal bl3ks m chill good peace , but like ur really the person that stands out bnisbali from the <span class="h-w">amazing </span>ppl i met f s2, i tried to sketch u , to make a website abt u to idk i wanted to do sm things but i was slow down rania ur mind is messy u could mess things up or idk , then a classmate of mine wrote u a card nd sketched u i was like this is cute but <span class="h-o">zutt sb9atnti hhhhhh</span>, <span class="h-w">shi ur so awesome uve got a flow so proper to u , ur hugs are so warm like akhh m addicted to them , ur voice is so sweet asahbti ,ur music taste fire , ur mind is so interesting , i like being around u even if we sit in silence , enjoying ur presence , admiring u </span> — if anything in this text sounds weird nvm forget abt it ,m okay with it, <span class="h-o">i yearn </span>for the deepest bond with u ,i feel so much, i wanna experience you <span class="h-w">all.</span></div>
+    </div>
+  </div>
+  <footer>
+    <span>Page 03 — The Raw Note</span><span class="flogo">PERCEPTION</span>
+    <button onclick="showPage('land')" style="background:none;border:none;font-family:'Space Grotesk',sans-serif;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.14);cursor:pointer;">← Back</button>
+  </footer>
+</div>
+
+<script>
+/* ── TICKER ── */
+(function(){
+  const track = document.getElementById('tickerTrack');
+  track.innerHTML += track.innerHTML;
+  let pos = 0;
+  const half = () => track.scrollWidth / 2;
+  (function tick(){
+    pos -= 1.1;
+    if (pos <= -half()) pos = 0;
+    track.style.transform = `translateX(${pos}px)`;
+    requestAnimationFrame(tick);
+  })();
+})();
+
+/* ── PAGE ROUTING ── */
+function showPage(id){
+  ['land','polished','raw'].forEach(p=>{
+    document.getElementById('page-'+p).classList.remove('active');
+    const nl = document.getElementById('nl-'+p);
+    if(nl) nl.classList.remove('active');
+  });
+  document.getElementById('page-'+id).classList.add('active');
+  const nlActive = document.getElementById('nl-'+id);
+  if(nlActive) nlActive.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ── EQ BARS ── */
+(function(){
+  const el=document.getElementById('eqBars');
+  const hs=[12,22,38,55,48,30,42,60,35,25,18,50,68,44,28,20,55,38,18,46,62,40,24,16,50,32,22,58,42,26];
+  for(let i=0;i<100;i++){
+    const b=document.createElement('div'); b.className='eq-bar';
+    b.style.height=hs[i%hs.length]+'px';
+    b.style.animationDelay=(i*.06)+'s';
+    b.style.animationDuration=(1+Math.random()*.9)+'s';
+    el.appendChild(b);
+  }
+  const se=document.getElementById('sideEq');
+  [30,60,85,65,45,75,35,90,55,50,70,40,80,30,65].forEach(h=>{
+    const b=document.createElement('div'); b.className='seq-bar';
+    b.style.height=h+'%'; se.appendChild(b);
+  });
+  const se2=document.getElementById('sideEq2');
+  [50,80,40,70,90,35,65,85,45,75,30,60,80,50,40].forEach(h=>{
+    const b=document.createElement('div'); b.className='seq-bar';
+    b.style.height=h+'%'; se2.appendChild(b);
+  });
+})();
+
+/* ── BANNER POSITIONING ── */
+function positionBanner(){
+  const desc   = document.getElementById('heroDesc');
+  const left   = document.getElementById('heroLeft');
+  const banner = document.getElementById('playBanner');
+  const dRect  = desc.getBoundingClientRect();
+  const lRect  = left.getBoundingClientRect();
+  banner.style.top   = (dRect.top - lRect.top) + 'px';
+  banner.style.left  = '3.5rem';
+  banner.style.right = '3rem';
+}
+window.addEventListener('load', positionBanner);
+window.addEventListener('resize', positionBanner);
+
+/* ══════════════════════════════
+   GAME
+══════════════════════════════ */
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+
+/* state */
+let G_active  = false;
+let G_over    = false;
+let G_scored  = 0;
+let G_ball    = null;
+let G_flash   = 0;
+let G_shake   = 0;
+let G_raf     = null;
+let G_hoop    = {};
+let G_player  = {};
+
+/* joystick state */
+const JOY_MAX = 35;   /* max knob travel in px */
+let joy = { dragging:false, dx:0, dy:0 };
+
+const GRAVITY = 0.22;
+
+/* canvas → logical coords */
+function canvasXY(e){
+  const r = canvas.getBoundingClientRect();
+  const sx = canvas.width  / r.width;
+  const sy = canvas.height / r.height;
+  const src = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
+  return { x:(src.clientX-r.left)*sx, y:(src.clientY-r.top)*sy };
+}
+
+function setupGame(){
+  const W=canvas.width, H=canvas.height;
+  G_hoop   = { x:W/2, y:H*0.18, r:28 };
+  G_player = { x:W/2, y:H*0.76 };
+}
+
+function resizeCanvas(){
+  const r = canvas.parentElement.getBoundingClientRect();
+  canvas.width  = r.width;
+  canvas.height = r.height;
+  setupGame();
+}
+
+function spawnBall(){
+  G_ball = { x:G_player.x, y:G_player.y-30, vx:0, vy:0, r:11, live:false, trail:[] };
+}
+
+/* ─── JOYSTICK interactions ─── */
+const joyBase  = document.getElementById('joyBase');
+const joyKnob  = document.getElementById('joyKnob');
+const shootBtn = document.getElementById('shootBtn');
+
+function joyCoords(e){
+  const r   = joyBase.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
+  return { x: src.clientX - r.left - r.width/2,
+           y: src.clientY - r.top  - r.height/2 };
+}
+
+function clampJoy(dx, dy){
+  const d = Math.sqrt(dx*dx+dy*dy);
+  if(d > JOY_MAX){ const s=JOY_MAX/d; return {dx:dx*s, dy:dy*s}; }
+  return {dx, dy};
+}
+
+function updateKnob(dx, dy){
+  joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+
+joyBase.addEventListener('mousedown', e=>{ joy.dragging=true; onJoyMove(e); });
+window.addEventListener('mousemove',  e=>{ if(joy.dragging) onJoyMove(e); });
+window.addEventListener('mouseup',    e=>{ if(joy.dragging){ joy.dragging=false; releaseJoy(); } });
+
+joyBase.addEventListener('touchstart', e=>{ e.preventDefault(); joy.dragging=true; onJoyMove(e.touches[0]); },{passive:false});
+joyBase.addEventListener('touchmove',  e=>{ e.preventDefault(); onJoyMove(e.touches[0]); },{passive:false});
+joyBase.addEventListener('touchend',   e=>{ e.preventDefault(); joy.dragging=false; releaseJoy(); },{passive:false});
+
+function onJoyMove(e){
+  if(!G_active || !G_ball || G_ball.live) return;
+  const raw = joyCoords(e);
+  const c   = clampJoy(raw.x, raw.y);
+  joy.dx = c.dx; joy.dy = c.dy;
+  updateKnob(c.dx, c.dy);
+  shootBtn.className = Math.sqrt(c.dx*c.dx+c.dy*c.dy) > 8 ? 'ready' : '';
+}
+.infinity{
+  font-family:'Bebas Neue','Arial','Helvetica',sans-serif;
+  font-weight:400;
+}
+function releaseJoy(){
+  /* release = auto-shoot (like a slingshot) */
+  if(G_active && G_ball && !G_ball.live){
+    const d = Math.sqrt(joy.dx*joy.dx + joy.dy*joy.dy);
+    if(d > 8) fireFromJoy();
+  }
+  joy.dx=0; joy.dy=0;
+  updateKnob(0,0);
+  shootBtn.className='';
+}
+
+function fireFromJoy(){
+  if(!G_active || !G_ball || G_ball.live) return;
+
+  /* invert direction: pulling down-right shoots up-left toward hoop */
+  const rawDx = -joy.dx;
+  const rawDy = -joy.dy;
+  const d = Math.sqrt(rawDx*rawDx + rawDy*rawDy);
+  if(d < 5) return;
+
+  /* normalized */
+  const nx = rawDx / d;
+  const ny = rawDy / d;
+
+  /* power proportional to how far the joystick was pulled */
+  const t   = Math.min(d / JOY_MAX, 1);
+  const spd = 6 + t * 9;              /* range 6–15 */
+
+  G_ball.vx = nx * spd;
+  G_ball.vy = ny * spd;
+  G_ball.live = true;
+
+  joy.dx=0; joy.dy=0;
+  updateKnob(0,0);
+  shootBtn.className='';
+}
+
+/* ─── game loop ─── */
+function gameLoop(){
+  if(!G_active) return;
+  update();
+  draw();
+  G_raf = requestAnimationFrame(gameLoop);
+}
+
+function update(){
+  if(!G_ball) return;
+  if(G_flash>0) G_flash--;
+  if(G_shake>0) G_shake--;
+  if(!G_ball.live) return;
+
+  G_ball.vy += GRAVITY;
+  G_ball.x  += G_ball.vx;
+  G_ball.y  += G_ball.vy;
+  G_ball.vx *= 0.999;
+
+  /* trail */
+  G_ball.trail.push({x:G_ball.x, y:G_ball.y});
+  if(G_ball.trail.length>22) G_ball.trail.shift();
+
+  /* ── GENEROUS score window ──
+     Ball scores when horizontally inside the rim AND
+     passing through the hoop plane downward.
+     Window is 1.5× the rim radius for leniency.     */
+  const hoopWindow = G_hoop.r * 1.5;
+  const inX = Math.abs(G_ball.x - G_hoop.x) < hoopWindow;
+  const inY = G_ball.y > G_hoop.y - 6 && G_ball.y < G_hoop.y + 28;
+
+  if(G_ball.vy > 0 && inX && inY){ bucket(); return; }
+
+  /* REALISTIC OPEN RIM COLLISION */
+
+const dx = G_ball.x - G_hoop.x;
+const dy = G_ball.y - G_hoop.y;
+const dist = Math.sqrt(dx*dx + dy*dy);
+
+/* left rim */
+const leftRimX = G_hoop.x - G_hoop.r;
+const rightRimX = G_hoop.x + G_hoop.r;
+const rimY = G_hoop.y;
+
+/* collide ONLY with left/right metal parts */
+const hitLeft =
+  Math.hypot(G_ball.x - leftRimX, G_ball.y - rimY)
+  < G_ball.r + 4;
+
+const hitRight =
+  Math.hypot(G_ball.x - rightRimX, G_ball.y - rimY)
+  < G_ball.r + 4;
+
+if(hitLeft || hitRight){
+
+  /* bounce */
+  G_ball.vy *= -0.72;
+
+  if(hitLeft){
+    G_ball.vx -= 1.2;
+  } else {
+    G_ball.vx += 1.2;
+  }
+
+  G_shake = 5;
+}
+
+  /* out of bounds */
+  const W=canvas.width, H=canvas.height;
+  if(G_ball.y>H+50 || G_ball.x<-60 || G_ball.x>W+60){
+    G_shake=12;
+    setTimeout(spawnBall,400);
+    G_ball=null;
+  }
+}
+
+function bucket(){
+  G_scored++;
+  G_flash=24;
+  document.getElementById('hudScore').textContent=G_scored;
+  document.getElementById('pip'+(G_scored-1)).classList.add('lit');
+  if(G_scored>=3){ G_over=true; G_active=false; cancelAnimationFrame(G_raf); setTimeout(triggerVictory,500); return; }
+  setTimeout(spawnBall,600);
+  G_ball=null;
+}
+
+/* ─── draw ─── */
+function draw(){
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  /* court faint lines */
+  ctx.save();
+  ctx.strokeStyle='rgba(255,255,255,.035)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(G_hoop.x,G_hoop.y,H*.32,0,Math.PI*2); ctx.stroke();
+  ctx.strokeRect(G_hoop.x-60,G_hoop.y-10,120,H*.45);
+  ctx.restore();
+
+  /* ghost N */
+  ctx.save();
+  ctx.font=`${Math.min(W,H)*.54}px 'Bebas Neue',sans-serif`;
+  ctx.strokeStyle='rgba(255,255,255,.035)'; ctx.lineWidth=1;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.strokeText('N',W/2,H/2);
+  ctx.restore();
+
+  /* ─ HOOP ─ */
+  ctx.save();
+  /* back rim shadow */
+  ctx.beginPath(); ctx.arc(G_hoop.x,G_hoop.y+2,G_hoop.r+1,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=6; ctx.stroke();
+  /* main rim */
+  const rimColor = G_flash>0 ? `rgba(232,82,10,${.55+.45*(G_flash/24)})` : 'rgba(232,82,10,.55)';
+  ctx.beginPath(); ctx.arc(G_hoop.x,G_hoop.y,G_hoop.r,0,Math.PI*2);
+  ctx.strokeStyle=rimColor; ctx.lineWidth=4; ctx.stroke();
+  /* inner highlight */
+  ctx.beginPath(); ctx.arc(G_hoop.x,G_hoop.y,G_hoop.r-1,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,160,60,.18)'; ctx.lineWidth=2; ctx.stroke();
+  /* net lines (simple) */
+  ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.lineWidth=1;
+  for(let i=0;i<6;i++){
+    const a=(i/6)*Math.PI*2;
+    const rx=G_hoop.x+Math.cos(a)*G_hoop.r, ry=G_hoop.y+Math.sin(a)*G_hoop.r;
+    ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(G_hoop.x,G_hoop.y+G_hoop.r*.6); ctx.stroke();
+  }
+  /* backboard */
+  ctx.strokeStyle='rgba(255,255,255,.2)'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(G_hoop.x-46,G_hoop.y-34); ctx.lineTo(G_hoop.x+46,G_hoop.y-34); ctx.stroke();
+  ctx.restore();
+
+  /* BUCKET text */
+  if(G_flash>14){
+    const a=(G_flash-14)/10;
+    ctx.save(); ctx.font="bold 1rem 'Bebas Neue',sans-serif";
+    ctx.fillStyle=`rgba(232,82,10,${a})`; ctx.textAlign='center';
+    ctx.fillText('BUCKET!',G_hoop.x,G_hoop.y-55);
+    ctx.restore();
+  }
+
+  /* AIM GUIDE from joystick */
+  if(joy.dragging && G_ball && !G_ball.live && (Math.abs(joy.dx)>5||Math.abs(joy.dy)>5)){
+    const rawDx=-joy.dx, rawDy=-joy.dy;
+    const d=Math.sqrt(rawDx*rawDx+rawDy*rawDy);
+    if(d>5){
+      const nx=rawDx/d, ny=rawDy/d;
+      const t=Math.min(d/JOY_MAX,1);
+      const spd=6+t*9;
+      ctx.save();
+      ctx.setLineDash([5,8]); ctx.strokeStyle='rgba(232,82,10,.75)'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(G_ball.x,G_ball.y);
+      let px=G_ball.x,py=G_ball.y,pvx=nx*spd,pvy=ny*spd;
+      for(let s=0;s<90;s++){
+        pvy+=GRAVITY; px+=pvx; py+=pvy; pvx*=.999;
+        ctx.lineTo(px,py);
+        if(py>H) break;
+      }
+      ctx.stroke(); ctx.restore();
+    }
+  }
+
+  /* BALL TRAIL */
+  if(G_ball&&G_ball.live&&G_ball.trail.length){
+    G_ball.trail.forEach((p,i)=>{
+      const a=(i/G_ball.trail.length)*.3;
+      const r=G_ball.r*(i/G_ball.trail.length)*.55;
+      ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(r,1),0,Math.PI*2);
+      ctx.fillStyle=`rgba(232,82,10,${a})`; ctx.fill();
+    });
+  }
+
+  /* BALL */
+  if(G_ball){
+    const sx=G_shake>0?(Math.random()-.5)*5*(G_shake/12):0;
+    ctx.save(); ctx.translate(sx,0);
+    const grd=ctx.createRadialGradient(G_ball.x-3,G_ball.y-3,1,G_ball.x,G_ball.y,G_ball.r);
+    grd.addColorStop(0,'#FF9A20'); grd.addColorStop(.5,'#E8520A'); grd.addColorStop(1,'#6E1800');
+    ctx.beginPath(); ctx.arc(G_ball.x,G_ball.y,G_ball.r,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.80)'; ctx.lineWidth=.8; ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(G_ball.x-G_ball.r,G_ball.y); ctx.lineTo(G_ball.x+G_ball.r,G_ball.y); ctx.stroke();
+    ctx.beginPath(); ctx.arc(G_ball.x,G_ball.y,G_ball.r,-.3,Math.PI+.3);
+    ctx.strokeStyle='rgba(0,0,0,.2)'; ctx.lineWidth=.7; ctx.stroke();
+    ctx.restore();
+  }
+
+  /* PLAYER */
+  drawJay(G_player.x, G_player.y);
+}
+
+/* ─ Jay Morant character ─ */
+function drawJay(x, y){
+  ctx.save();
+  const t   = Date.now();
+  const bob = Math.sin(t*.003)*2;
+  const by  = bob;
+
+  /* shadow */
+  ctx.beginPath(); ctx.ellipse(x,y+26+by,20,5,0,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,.3)'; ctx.fill();
+
+  /* ── LEGS ── */
+  ctx.strokeStyle='#111'; ctx.lineWidth=6; ctx.lineCap='round';
+  /* left thigh */
+  ctx.beginPath(); ctx.moveTo(x-5,y+10+by); ctx.lineTo(x-8,y+20+by); ctx.stroke();
+  /* left shin */
+  ctx.beginPath(); ctx.moveTo(x-8,y+20+by); ctx.lineTo(x-11,y+28+by); ctx.stroke();
+  /* right thigh */
+  ctx.beginPath(); ctx.moveTo(x+5,y+10+by); ctx.lineTo(x+8,y+20+by); ctx.stroke();
+  /* right shin */
+  ctx.beginPath(); ctx.moveTo(x+8,y+20+by); ctx.lineTo(x+12,y+28+by); ctx.stroke();
+
+  /* socks (white strip) */
+  ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(x-11,y+24+by); ctx.lineTo(x-11,y+27+by); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+12,y+24+by); ctx.lineTo(x+12,y+27+by); ctx.stroke();
+
+  /* shoes — Nike Jordan 1 silhouette */
+  ctx.fillStyle='#111';
+  /* left shoe */
+  ctx.beginPath();
+  ctx.moveTo(x-16,y+29+by); ctx.lineTo(x-4,y+29+by);
+  ctx.lineTo(x-4,y+26+by); ctx.lineTo(x-11,y+26+by);
+  ctx.closePath(); ctx.fill();
+  /* right shoe */
+  ctx.beginPath();
+  ctx.moveTo(x+4,y+29+by); ctx.lineTo(x+18,y+29+by);
+  ctx.lineTo(x+18,y+26+by); ctx.lineTo(x+12,y+26+by);
+  ctx.closePath(); ctx.fill();
+  /* orange swoosh stripe */
+  ctx.strokeStyle='#E8520A'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x-14,y+27.5+by); ctx.bezierCurveTo(x-10,y+26+by,x-7,y+27+by,x-5,y+27.5+by); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+6,y+27.5+by);  ctx.bezierCurveTo(x+10,y+26+by,x+14,y+27+by,x+16,y+27.5+by); ctx.stroke();
+
+  /* ── SHORTS ── */
+  ctx.fillStyle='#0A0A1A'; /* Memphis navy */
+  ctx.beginPath();
+  ctx.roundRect(x-13,y+8+by,26,14,3);
+  ctx.fill();
+  /* shorts stripe */
+  ctx.fillStyle='#E8520A';
+  ctx.fillRect(x-13,y+8+by,3,14);
+  ctx.fillRect(x+10,y+8+by,3,14);
+
+  /* ── JERSEY ── */
+  const jg=ctx.createLinearGradient(x,y-14+by,x,y+10+by);
+  jg.addColorStop(0,'#1B4FDB'); /* Memphis Grizzlies navy/blue */
+  jg.addColorStop(1,'#0A2080');
+  ctx.beginPath(); ctx.roundRect(x-12,y-14+by,24,24,4);
+  ctx.fillStyle=jg; ctx.fill();
+  /* jersey side stripes */
+  ctx.fillStyle='#E8520A';
+  ctx.fillRect(x-12,y-14+by,3,24);
+  ctx.fillRect(x+9,y-14+by,3,24);
+  /* jersey number 12 */
+  ctx.font="bold 9px 'Bebas Neue',sans-serif";
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('12',x,y-3+by);
+
+  /* ── ARMS ── */
+  ctx.strokeStyle='#5C3317'; ctx.lineWidth=5; ctx.lineCap='round';
+  const holding = joy.dragging && G_ball && !G_ball.live;
+  if(holding){
+    /* arms raised for shot */
+    ctx.beginPath(); ctx.moveTo(x-11,y-8+by); ctx.lineTo(x-20,y-22+by); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+11,y-8+by); ctx.lineTo(x+20,y-22+by); ctx.stroke();
+    /* wristbands */
+    ctx.strokeStyle='#E8520A'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x-19,y-20+by); ctx.lineTo(x-17,y-24+by); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+17,y-20+by); ctx.lineTo(x+19,y-24+by); ctx.stroke();
+  } else {
+    /* relaxed arms */
+    ctx.beginPath(); ctx.moveTo(x-11,y-8+by); ctx.lineTo(x-17,y+4+by); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+11,y-8+by); ctx.lineTo(x+17,y+4+by); ctx.stroke();
+    /* wristbands */
+    ctx.strokeStyle='#E8520A'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x-17,y+2+by); ctx.lineTo(x-15,y+6+by); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+15,y+2+by); ctx.lineTo(x+17,y+6+by); ctx.stroke();
+  }
+
+  /* ── NECK ── */
+  ctx.fillStyle='#5C3317';
+  ctx.beginPath(); ctx.roundRect(x-4,y-20+by,8,9,2); ctx.fill();
+
+  /* ── HEAD ── */
+  /* head shadow */
+  ctx.beginPath(); ctx.ellipse(x+1,y-25+by,12,14,0,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,.2)'; ctx.fill();
+  /* main head — oval (Jay's face shape) */
+  ctx.beginPath(); ctx.ellipse(x,y-26+by,11,13,0,0,Math.PI*2);
+  ctx.fillStyle='#6B3D1E'; ctx.fill();
+  /* face highlight */
+  ctx.beginPath(); ctx.ellipse(x-3,y-30+by,4,5,-.3,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.08)'; ctx.fill();
+
+  /* ── HAIR — Jay's signature locs ── */
+  const locColors = ['#1a0d06','#2b1608','#1a0d06','#2b1608','#1a0d06','#241006'];
+  /* back locs (drawn first, behind head) */
+  for(let i=0;i<5;i++){
+    const a = -0.6 + i*0.3;
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(a)*9, y-36+by);
+    ctx.quadraticCurveTo(
+      x + Math.cos(a)*14, y-44+by,
+      x + Math.cos(a)*12 + Math.sin(i)*3, y-38+by
+    );
+    ctx.strokeStyle=locColors[i%locColors.length]; ctx.lineWidth=3; ctx.stroke();
+  }
+  /* front locs falling forward */
+  for(let i=0;i<4;i++){
+    const startX = x - 8 + i*5;
+    ctx.beginPath();
+    ctx.moveTo(startX, y-36+by);
+    ctx.quadraticCurveTo(startX-2, y-42+by, startX+1, y-40+by);
+    ctx.strokeStyle=locColors[i%locColors.length]; ctx.lineWidth=2.5; ctx.stroke();
+  }
+  /* loc tips (slightly lighter) */
+  ctx.strokeStyle='#3d1c0a'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x-7,y-42+by); ctx.lineTo(x-9,y-45+by); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-2,y-43+by); ctx.lineTo(x-4,y-46+by); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+3, y-43+by); ctx.lineTo(x+1, y-46+by); ctx.stroke();
+
+  /* headband (Grizzlies colors) */
+  ctx.strokeStyle='#E8520A'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.arc(x,y-26+by,11,Math.PI*.65,Math.PI*.35,false); ctx.stroke();
+  ctx.strokeStyle='#1B4FDB'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(x,y-26+by,11,Math.PI*.65,Math.PI*.35,false); ctx.stroke();
+
+  /* ── FACE ── */
+  /* eyebrows — slight frown / intensity */
+  ctx.strokeStyle='#2b1608'; ctx.lineWidth=1.8;
+  ctx.beginPath(); ctx.moveTo(x-5,y-29+by); ctx.lineTo(x-2,y-30+by); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+2,y-30+by); ctx.lineTo(x+5,y-29+by); ctx.stroke();
+  /* eyes — almond shape */
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.ellipse(x-4,y-26+by,2.5,1.8,-.15,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x+4,y-26+by,2.5,1.8, .15,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1a0800';
+  ctx.beginPath(); ctx.arc(x-4,y-26+by,1.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+4,y-26+by,1.2,0,Math.PI*2); ctx.fill();
+  /* eye shine */
+  ctx.fillStyle='rgba(255,255,255,.7)';
+  ctx.beginPath(); ctx.arc(x-3.2,y-26.5+by,.6,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+4.8,y-26.5+by,.6,0,Math.PI*2); ctx.fill();
+  /* nose */
+  ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(x-1,y-24+by); ctx.lineTo(x-2,y-21+by); ctx.lineTo(x+1,y-21+by); ctx.stroke();
+  /* mouth — determined smirk */
+  ctx.strokeStyle='rgba(0,0,0,.4)'; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.moveTo(x-3,y-18+by); ctx.quadraticCurveTo(x,y-17+by,x+3,y-18.5+by); ctx.stroke();
+
+  ctx.restore();
+}
+
+/* ── START GAME ── */
+function handleBtn(){
+  if(!G_active && !G_over) startGame();
+}
+
+function startGame(){
+  G_active=true; G_over=false; G_scored=0;
+  document.getElementById('staticCourt').style.display='none';
+  document.getElementById('scoreOverlay').style.display='none';
+  document.getElementById('bigN').style.display='none';
+  document.getElementById('eqBars').style.display='none';
+  document.getElementById('celebrateOverlay').classList.remove('show');
+  [0,1,2].forEach(i=>document.getElementById('pip'+i).classList.remove('lit'));
+
+  canvas.style.display='block';
+  document.getElementById('joyWrap').style.display='flex';
+  document.getElementById('gameHud').style.display='flex';
+  document.getElementById('hudScore').textContent='0';
+  document.getElementById('tickerBar').classList.add('glitch');
+
+  positionBanner();
+  document.getElementById('playBanner').classList.add('visible');
+  document.getElementById('mainBtn').disabled=true;
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const hint=document.getElementById('aimHint');
+  hint.style.display='block';
+  hint.style.animation='none'; void hint.offsetWidth;
+  hint.style.animation='hintFade 4s ease forwards';
+  setTimeout(()=>{ hint.style.display='none'; },4000);
+
+  spawnBall();
+  gameLoop();
+}
+
+/* ── VICTORY ── */
+function triggerVictory(){
+  cancelAnimationFrame(G_raf);
+  document.getElementById('celebrateOverlay').classList.add('show');
+  document.getElementById('joyWrap').style.display='none';
+  document.getElementById('tickerBar').classList.remove('glitch');
+  document.getElementById('playBanner').classList.remove('visible');
+  const fb=document.getElementById('fallBanner');
+  fb.classList.add('active');
+  setTimeout(()=>{ document.getElementById('heroDesc').classList.add('revealed'); },800);
+  setTimeout(()=>{
+    document.getElementById('celebrateOverlay').classList.remove('show');
+    canvas.style.display='none';
+    document.getElementById('gameHud').style.display='none';
+    document.getElementById('staticCourt').style.display='block';
+    document.getElementById('scoreOverlay').style.display='flex';
+    document.getElementById('bigN').style.display='block';
+    document.getElementById('eqBars').style.display='flex';
+    fb.classList.remove('active');
+    const btn=document.getElementById('mainBtn');
+    btn.disabled=false; btn.innerHTML='Read it →';
+    btn.onclick=()=>showPage('polished');
+    window.removeEventListener('resize', resizeCanvas);
+    G_active=false;
+  },3800);
+}
+</script>
+</body>
+</html>
