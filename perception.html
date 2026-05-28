@@ -517,10 +517,10 @@ function update(){
      Ball scores when horizontally inside the rim AND
      passing through the hoop plane downward.
      Window is 1.5× the rim radius for leniency.     */
- const hoopWindow = G_hoop.r * 1.0;
+ const hoopWindow = G_hoop.r * 0.5;
 
 const inX = Math.abs(G_ball.x - G_hoop.x) < hoopWindow;
-const inY = G_ball.y > G_hoop.y && G_ball.y < G_hoop.y + 18;
+const inY = G_ball.y > G_hoop.y && G_ball.y < G_hoop.y + 10;
 
   if(G_ball.vy > 0 && inX && inY){ bucket(); return; }
 
